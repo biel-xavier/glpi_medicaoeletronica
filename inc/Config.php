@@ -3,6 +3,7 @@
 namespace GlpiPlugin\Medicaoeletronica;
 
 use CommonDBTM;
+use GlpiPlugin\Medicaoeletronica\Repository\ConfigRepository;
 use Html;
 use Session;
 
@@ -52,25 +53,10 @@ class Config extends CommonDBTM
 
     public function showConfigForm()
     {
-        global $DB;
-
         // Check if user has UPDATE rights
         Session::checkRight(static::$rightname, UPDATE);
 
-        $configs = $DB->request([
-            'FROM'  => 'glpi_plugin_medicaoeletronica_configs',
-            'LIMIT' => 1
-        ]);
-
-        $config = [];
-        foreach ($configs as $row) {
-            $config = $row;
-            break;
-        }
-
-        if (empty($config)) {
-            $config = ['id' => 0, 'url' => '', 'retries' => 3, 'itilcategories' => null];
-        }
+        $config = (new ConfigRepository())->getConfig();
 
         // Categorias salvas na config
         $savedCategories = [];

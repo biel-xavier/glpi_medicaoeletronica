@@ -58,6 +58,10 @@ function plugin_init_medicaoeletronica()
     // Show menu entry only if user has rights
     if (Session::haveRight('medicaoeletronica', READ)) {
         $PLUGIN_HOOKS['menu_entry']['medicaoeletronica'] = true;
+        $PLUGIN_HOOKS['config_page']['medicaoeletronica'] = 'front/config.php';
+        $PLUGIN_HOOKS['menu_toadd']['medicaoeletronica'] = [
+            'plugins' => \GlpiPlugin\Medicaoeletronica\Menu::class
+        ];
     }
 
     // Register Profile tab using Plugin::registerClass (like Tag plugin)

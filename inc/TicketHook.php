@@ -2,6 +2,8 @@
 
 namespace GlpiPlugin\Medicaoeletronica;
 
+use GlpiPlugin\Medicaoeletronica\Repository\ConfigRepository;
+use GlpiPlugin\Medicaoeletronica\Service\MedicaoService;
 use Ticket;
 use Session;
 use Toolbox;
@@ -23,9 +25,10 @@ class TicketHook
 
     public static function handlePreItemUpdate(Ticket $ticket): void
     {
-        global $DB;
-
         try {
+            $configRepository = new ConfigRepository();
+            $medicaoService = new MedicaoService();
+
             // Valor efetivo do status após a edição
             $newStatus = isset($ticket->input['status'])
                 ? (int)$ticket->input['status']
@@ -41,29 +44,18 @@ class TicketHook
                 : ($ticket->fields['itilcategories_id'] ?? 0));
 
             // Verificar categorias configuradas
-            $configRow = $DB->request([
-                'FROM'  => 'glpi_plugin_medicaoeletronica_configs',
-                'LIMIT' => 1
-            ])->current();
-
-            if (empty($configRow) || empty($configRow['itilcategories'])) {
+            $configuredCategories = $configRepository->getConfiguredCategories();
+            if (empty($configuredCategories)) {
                 return;
             }
-
-            $configuredCategories = json_decode($configRow['itilcategories'], true);
-            if (!is_array($configuredCategories) || empty($configuredCategories)) {
-                return;
-            }
-            $configuredCategories = array_map('intval', $configuredCategories);
 
             if (!in_array($categoryId, $configuredCategories, true)) {
                 return;
             }
 
             // Categoria bate → validar payload antes de permitir o fechamento
-            $integration = new Integration();
             $ticketId    = $ticket->getID();
-            $payload     = $integration->getDataTicket($ticketId);
+            $payload     = $medicaoService->getDataTicket($ticketId);
 
 
             Toolbox::logInFile(
@@ -80,7 +72,7 @@ class TicketHook
                 return;
             }
 
-            $errors = $integration->validateBeforeSendMedicao($payload);
+            $errors = $medicaoService->validateBeforeSendMedicao($payload);
             if (!empty($errors)) {
                 Session::addMessageAfterRedirect(
                     '<b>[Medição Eletrônica]</b> Não foi possível fechar o chamado. Campos obrigatórios ausentes ou inválidos: <b>'
@@ -104,34 +96,24 @@ class TicketHook
 
     public static function handleItemUpdate(Ticket $ticket): void
     {
-        global $DB;
-
         try {
+            $configRepository = new ConfigRepository();
+
             if ((int)($ticket->fields['status'] ?? 0) !== self::STATUS_CLOSED) {
                 return;
             }
 
-            $configRow = $DB->request([
-                'FROM'  => 'glpi_plugin_medicaoeletronica_configs',
-                'LIMIT' => 1
-            ])->current();
-
-            if (empty($configRow) || empty($configRow['itilcategories'])) {
+            $configuredCategories = $configRepository->getConfiguredCategories();
+            if (empty($configuredCategories)) {
                 return;
             }
-
-            $configuredCategories = json_decode($configRow['itilcategories'], true);
-            if (!is_array($configuredCategories) || empty($configuredCategories)) {
-                return;
-            }
-            $configuredCategories = array_map('intval', $configuredCategories);
 
             $categoryId = (int)($ticket->fields['itilcategories_id'] ?? 0);
             if (!in_array($categoryId, $configuredCategories, true)) {
                 return;
             }
 
-            PluginApi::forceSendMedicao($ticket->getID());
+            (new MedicaoService())->forceSendMedicao($ticket->getID());
 
             Toolbox::logInFile(
                 'php-errors',

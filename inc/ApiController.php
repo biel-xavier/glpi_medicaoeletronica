@@ -8,6 +8,9 @@ use Glpi\Api\HL\RouteVersion;
 use Glpi\Http\JSONResponse;
 use Glpi\Http\Request;
 use Glpi\Http\Response;
+use GlpiPlugin\Medicaoeletronica\Repository\CostCenterRepository;
+use GlpiPlugin\Medicaoeletronica\Repository\PartnerRepository;
+use GlpiPlugin\Medicaoeletronica\Service\MedicaoService;
 use GlpiPlugin\Medicaoeletronica\SessionAuthMiddleware;
 
 class ApiController extends AbstractController
@@ -16,7 +19,7 @@ class ApiController extends AbstractController
     #[RouteVersion(introduced: '2.0')]
     public function getPartners(Request $request): Response
     {
-        $partners = PluginApi::getPartners();
+        $partners = (new PartnerRepository())->findPartners();
         return new JSONResponse($partners);
     }
 
@@ -28,7 +31,7 @@ class ApiController extends AbstractController
         if (!$id) {
             return new JSONResponse([]);
         }
-        $contacts = PluginApi::getContactsPartner($id);
+        $contacts = (new PartnerRepository())->findPartnerContacts((int) $id);
         return new JSONResponse($contacts);
     }
 
@@ -40,7 +43,7 @@ class ApiController extends AbstractController
         if (!$id) {
             return new JSONResponse([]);
         }
-        $contacts = PluginApi::getContactsExecutivePartner($id);
+        $contacts = (new PartnerRepository())->findExecutiveContacts((int) $id);
         return new JSONResponse($contacts);
     }
 
@@ -52,7 +55,7 @@ class ApiController extends AbstractController
         if (!$id) {
             return new JSONResponse([]);
         }
-        $data = PluginApi::getPartnersCapillarity($id);
+        $data = (new PartnerRepository())->findPartnersCapillarity((int) $id);
         return new JSONResponse($data);
     }
 
@@ -60,7 +63,7 @@ class ApiController extends AbstractController
     #[RouteVersion(introduced: '2.0')]
     public function getCostCenter(Request $request): Response
     {
-        $costs = PluginApi::getCostCenter();
+        $costs = (new CostCenterRepository())->findCostCenters();
         return new JSONResponse($costs);
     }
 
@@ -72,7 +75,7 @@ class ApiController extends AbstractController
         if (!$id) {
             return new JSONResponse([]);
         }
-        $data = PluginApi::getDataTicket($id);
+        $data = (new MedicaoService())->getApiTicketData((int) $id);
         return new JSONResponse($data);
     }
 
@@ -84,7 +87,7 @@ class ApiController extends AbstractController
         if (!$id) {
             return new JSONResponse(['error' => 'id é obrigatório'], 400);
         }
-        $response = PluginApi::forceSendMedicao($id);
+        $response = (new MedicaoService())->forceSendMedicao((int) $id);
         return new JSONResponse($response);
     }
 
