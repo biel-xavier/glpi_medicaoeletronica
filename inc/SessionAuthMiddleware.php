@@ -44,21 +44,25 @@ class SessionAuthMiddleware extends AbstractMiddleware implements RequestMiddlew
 
             $current_id = session_id();
             if ($token !== $current_id) {
-                if (!empty($current_id)) {
+                if (session_status() === PHP_SESSION_ACTIVE) {
                     session_write_close();
                 }
                 session_id($token);
-                try {
-                    Session::start();
-                    Session::loadLanguage();
-                } catch (\Throwable $e) {
-                    $input->response = new JSONResponse([
-                        'title' => 'Session Error',
-                        'detail' => 'Failed to start session with the provided token',
-                        'status' => 'ERROR_SESSION_FAILURE'
-                    ], 401);
-                    return;
-                }
+            }
+
+            // Always open the session for the provided token.
+            // This avoids a false negative when PHP already knows the same
+            // session_id but the session has not been started yet.
+            try {
+                Session::start();
+                Session::loadLanguage();
+            } catch (\Throwable $e) {
+                $input->response = new JSONResponse([
+                    'title' => 'Session Error',
+                    'detail' => 'Failed to start session with the provided token',
+                    'status' => 'ERROR_SESSION_FAILURE'
+                ], 401);
+                return;
             }
 
             if (($user_id = Session::getLoginUserID()) !== false) {

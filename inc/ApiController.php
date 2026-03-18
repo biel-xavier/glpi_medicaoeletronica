@@ -16,7 +16,7 @@ use GlpiPlugin\Medicaoeletronica\SessionAuthMiddleware;
 class ApiController extends AbstractController
 {
     #[Route(path: '/medicaoeletronica/getPartners', methods: ['GET'], security_level: Route::SECURITY_NONE, middlewares: [SessionAuthMiddleware::class])]
-    #[RouteVersion(introduced: '2.0')]
+    #[RouteVersion(introduced: '1.0')]
     public function getPartners(Request $request): Response
     {
         $partners = (new PartnerRepository())->findPartners();
@@ -24,7 +24,7 @@ class ApiController extends AbstractController
     }
 
     #[Route(path: '/medicaoeletronica/getContactsPartner', methods: ['GET'], security_level: Route::SECURITY_NONE, middlewares: [SessionAuthMiddleware::class])]
-    #[RouteVersion(introduced: '2.0')]
+    #[RouteVersion(introduced: '1.0')]
     public function getContactsPartner(Request $request): Response
     {
         $id = $request->getParameter('id');
@@ -36,7 +36,7 @@ class ApiController extends AbstractController
     }
 
     #[Route(path: '/medicaoeletronica/getContactsExecutivePartner', methods: ['GET'], security_level: Route::SECURITY_NONE, middlewares: [SessionAuthMiddleware::class])]
-    #[RouteVersion(introduced: '2.0')]
+    #[RouteVersion(introduced: '1.0')]
     public function getContactsExecutivePartner(Request $request): Response
     {
         $id = $request->getParameter('id');
@@ -48,7 +48,7 @@ class ApiController extends AbstractController
     }
 
     #[Route(path: '/medicaoeletronica/getPartnersCapillarity', methods: ['GET'], security_level: Route::SECURITY_NONE, middlewares: [SessionAuthMiddleware::class])]
-    #[RouteVersion(introduced: '2.0')]
+    #[RouteVersion(introduced: '1.0')]
     public function getPartnersCapillarity(Request $request): Response
     {
         $id = $request->getParameter('id');
@@ -60,7 +60,7 @@ class ApiController extends AbstractController
     }
 
     #[Route(path: '/medicaoeletronica/getCostCenter', methods: ['GET'], security_level: Route::SECURITY_NONE, middlewares: [SessionAuthMiddleware::class])]
-    #[RouteVersion(introduced: '2.0')]
+    #[RouteVersion(introduced: '1.0')]
     public function getCostCenter(Request $request): Response
     {
         $costs = (new CostCenterRepository())->findCostCenters();
@@ -68,7 +68,7 @@ class ApiController extends AbstractController
     }
 
     #[Route(path: '/medicaoeletronica/getDataTicket', methods: ['GET'], security_level: Route::SECURITY_NONE, middlewares: [SessionAuthMiddleware::class])]
-    #[RouteVersion(introduced: '2.0')]
+    #[RouteVersion(introduced: '1.0')]
     public function getDataTicket(Request $request): Response
     {
         $id = $request->getParameter('id');
@@ -80,7 +80,7 @@ class ApiController extends AbstractController
     }
 
     #[Route(path: '/medicaoeletronica/forceSendMedicao', methods: ['POST'], security_level: Route::SECURITY_NONE, middlewares: [SessionAuthMiddleware::class])]
-    #[RouteVersion(introduced: '2.0')]
+    #[RouteVersion(introduced: '1.0')]
     public function forceSendMedicao(Request $request): Response
     {
         $id = $request->getParameter('id');
@@ -92,7 +92,7 @@ class ApiController extends AbstractController
     }
 
     #[Route(path: '/medicaoeletronica/version', methods: ['GET'], security_level: Route::SECURITY_NONE)]
-    #[RouteVersion(introduced: '2.0')]
+    #[RouteVersion(introduced: '1.0')]
     public function getVersion(Request $request): Response
     {
         return new JSONResponse([
