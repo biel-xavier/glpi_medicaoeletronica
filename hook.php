@@ -48,6 +48,32 @@ function plugin_medicaoeletronica_install()
         $migration->addPostQuery($query);
     }
 
+    if (!$DB->tableExists("glpi_plugin_medicaoeletronica_locations")) {
+        $query = "CREATE TABLE `glpi_plugin_medicaoeletronica_locations` (
+            `id` INT NOT NULL,
+            `state` VARCHAR(2) NOT NULL,
+            `town` VARCHAR(255) NOT NULL,
+            PRIMARY KEY (`id`),
+            KEY `idx_state` (`state`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
+        $migration->addPostQuery($query);
+    }
+
+    // Importar dados de locations (somente se tabela estiver vazia)
+    $count = $DB->request([
+        'COUNT' => 'cpt',
+        'FROM'  => 'glpi_plugin_medicaoeletronica_locations'
+    ])->current();
+
+    if ($count['cpt'] == 0) {
+        $sql_file = GLPI_ROOT . "/marketplace/medicaoeletronica/sql/glpi_plugin_medicaoeletronica_locations.sql";
+        Toolbox::logInFile('php-errors', print_r($sql_file, true));
+        plugin_medicaoeletronica_execute_sql_file($migration, $sql_file);
+    }
+
+
+
     // Execute all migrations
     $migration->executeMigration();
 
@@ -76,6 +102,8 @@ function plugin_medicaoeletronica_install()
         \ProfileRight::addProfileRights(['medicaoeletronica']);
     }
 
+
+
     return true;
 }
 
@@ -83,16 +111,34 @@ function plugin_medicaoeletronica_uninstall()
 {
     global $DB;
 
-    $tables = [
-        "glpi_plugin_medicaoeletronica_configs",
-        "glpi_plugin_medicaoeletronica_histories"
-    ];
+    // $tables = [
+    //     "glpi_plugin_medicaoeletronica_configs",
+    //     "glpi_plugin_medicaoeletronica_histories",
+    //     "glpi_plugin_medicaoeletronica_states"
+    // ];
 
-    foreach ($tables as $table) {
-        if ($DB->tableExists($table)) {
-            $DB->dropTable($table);
-        }
-    }
+    // foreach ($tables as $table) {
+    //     if ($DB->tableExists($table)) {
+    //         $DB->dropTable($table);
+    //     }
+    // }
 
     return true;
+}
+
+function plugin_medicaoeletronica_execute_sql_file(Migration $migration, $file)
+{
+    if (!file_exists($file)) {
+        return;
+    }
+
+    $sql = file_get_contents($file);
+
+    foreach (explode(";", $sql) as $query) {
+        $query = trim($query);
+
+        if (!empty($query)) {
+            $migration->addPostQuery($query);
+        }
+    }
 }
