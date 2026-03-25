@@ -222,7 +222,7 @@ class PartnerRepository
 
                 $originRows = iterator_to_array($DB->request([
                     'SELECT' => ['id as ID'],
-                    'FROM'   => 'glpi_states_towns',
+                    'FROM'   => 'glpi_plugin_medicaoeletronica_locations',
                     'WHERE'  => [
                         'state' => $result['ESTADO_ORIGEM'],
                         'town'  => $result['CIDADE_ORIGEM']
@@ -231,7 +231,7 @@ class PartnerRepository
 
                 $destinationRows = iterator_to_array($DB->request([
                     'SELECT' => ['id as ID'],
-                    'FROM'   => 'glpi_states_towns',
+                    'FROM'   => 'glpi_plugin_medicaoeletronica_locations',
                     'WHERE'  => [
                         'state' => $state[0]['locale'],
                         'town'  => $city[0]['locale']
