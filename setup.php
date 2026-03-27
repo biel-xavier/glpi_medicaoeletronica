@@ -64,8 +64,9 @@ function plugin_init_medicaoeletronica()
         ];
     }
 
-    // Register Profile tab using Plugin::registerClass (like Tag plugin)
+    // Register plugin tabs
     Plugin::registerClass('GlpiPlugin\\Medicaoeletronica\\ProfileClass', ['addtabon' => ['Profile']]);
+    Plugin::registerClass('GlpiPlugin\\Medicaoeletronica\\History', ['addtabon' => ['Ticket']]);
 }
 
 function plugin_version_medicaoeletronica()
