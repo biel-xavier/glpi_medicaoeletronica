@@ -11,7 +11,7 @@ use Ticket;
 
 class History extends CommonDBTM
 {
-    static $rightname = 'medicaoeletronica';
+    static $rightname = 'medicaoeletronica_history';
 
     public static function getIcon()
     {
@@ -38,14 +38,9 @@ class History extends CommonDBTM
             return '';
         }
 
-        $count = 0;
-        if (!empty($_SESSION['glpishow_count_on_tabs'])) {
-            $count = $this->countForTicket((int) $item->getID());
-        }
-
         return self::createTabEntry(
             __('Medição Eletrônica - Histories', 'medicaoeletronica'),
-            $count,
+            0,
             $item::getType(),
             self::getIcon()
         );
@@ -122,31 +117,11 @@ class History extends CommonDBTM
 
     private function shouldDisplayTabForTicket(Ticket $ticket): bool
     {
-        $ticketId = (int) $ticket->getID();
         $categoryId = (int) ($ticket->fields['itilcategories_id'] ?? 0);
-
-        if ($this->countForTicket($ticketId) > 0) {
-            return true;
-        }
 
         $configuredCategories = (new ConfigRepository())->getConfiguredCategories();
 
         return in_array($categoryId, $configuredCategories, true);
-    }
-
-    private function countForTicket(int $ticketId): int
-    {
-        global $DB;
-
-        $result = $DB->request([
-            'COUNT' => 'cpt',
-            'FROM'  => 'glpi_plugin_medicaoeletronica_histories',
-            'WHERE' => [
-                'tickets_id' => $ticketId
-            ]
-        ])->current();
-
-        return (int) ($result['cpt'] ?? 0);
     }
 
     private function findByTicket(int $ticketId): array

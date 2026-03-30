@@ -82,6 +82,30 @@ function plugin_medicaoeletronica_install()
         \ProfileRight::addProfileRights(['medicaoeletronica']);
     }
 
+    $existingHistory = $DB->request([
+        'COUNT' => 'cpt',
+        'FROM'  => 'glpi_profilerights',
+        'WHERE' => ['name' => 'medicaoeletronica_history']
+    ])->current();
+
+    if ($existingHistory['cpt'] == 0) {
+        \ProfileRight::addProfileRights(['medicaoeletronica_history']);
+    }
+
+    if (!class_exists(\GlpiPlugin\Medicaoeletronica\ProfileClass::class)) {
+        require_once __DIR__ . '/inc/ProfileClass.php';
+    }
+
+    foreach ($DB->request([
+        'SELECT' => ['id'],
+        'FROM'   => 'glpi_profiles'
+    ]) as $profile) {
+        \GlpiPlugin\Medicaoeletronica\ProfileClass::addDefaultProfileInfos((int) $profile['id'], [
+            'medicaoeletronica'         => 0,
+            'medicaoeletronica_history' => 0,
+        ]);
+    }
+
 
 
     return true;

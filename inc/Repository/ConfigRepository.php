@@ -4,9 +4,15 @@ namespace GlpiPlugin\Medicaoeletronica\Repository;
 
 class ConfigRepository
 {
+    private static ?array $cachedConfig = null;
+
     public function getConfig(): array
     {
         global $DB;
+
+        if (self::$cachedConfig !== null) {
+            return self::$cachedConfig;
+        }
 
         $configs = $DB->request([
             'FROM'  => 'glpi_plugin_medicaoeletronica_configs',
@@ -14,15 +20,18 @@ class ConfigRepository
         ]);
 
         foreach ($configs as $config) {
-            return $config;
+            self::$cachedConfig = $config;
+            return self::$cachedConfig;
         }
 
-        return [
+        self::$cachedConfig = [
             'id'             => 0,
             'url'            => 'https://medicao.advanta.com.br/Api/IntegracaoCervello.asmx',
             'retries'        => 3,
             'itilcategories' => null,
         ];
+
+        return self::$cachedConfig;
     }
 
     public function save(array $data, int $id = 0): void
@@ -38,10 +47,12 @@ class ConfigRepository
 
         if ($id > 0) {
             $DB->update('glpi_plugin_medicaoeletronica_configs', $payload, ['id' => $id]);
+            self::$cachedConfig = null;
             return;
         }
 
         $DB->insert('glpi_plugin_medicaoeletronica_configs', $payload);
+        self::$cachedConfig = null;
     }
 
     public function getConfiguredCategories(): array

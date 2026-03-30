@@ -9,6 +9,53 @@ use Session;
 
 class ProfileClass extends Profile
 {
+    public static $rightname = 'profile';
+
+    public static function getAllRights(): array
+    {
+        return [
+            [
+                'itemtype' => 'GlpiPlugin\\Medicaoeletronica\\Config',
+                'label'    => __('Medição Eletrônica', 'medicaoeletronica'),
+                'field'    => 'medicaoeletronica',
+            ],
+            [
+                'itemtype' => 'GlpiPlugin\\Medicaoeletronica\\History',
+                'label'    => __('Histórico da API', 'medicaoeletronica'),
+                'field'    => 'medicaoeletronica_history',
+                'rights'   => [READ => __('Read')],
+            ],
+        ];
+    }
+
+    public static function addDefaultProfileInfos(int $profiles_id, array $rights): void
+    {
+        $profileRight = new \ProfileRight();
+
+        foreach ($rights as $right => $value) {
+            if (!countElementsInTable('glpi_profilerights', [
+                'profiles_id' => $profiles_id,
+                'name'        => $right,
+            ])) {
+                $profileRight->add([
+                    'profiles_id' => $profiles_id,
+                    'name'        => $right,
+                    'rights'      => $value,
+                ]);
+
+                $_SESSION['glpiactiveprofile'][$right] = $value;
+            }
+        }
+    }
+
+    public static function createFirstAccess(int $profiles_id): void
+    {
+        self::addDefaultProfileInfos($profiles_id, [
+            'medicaoeletronica'         => ALLSTANDARDRIGHT,
+            'medicaoeletronica_history' => READ,
+        ]);
+    }
+
     public function getTabNameForItem(\CommonGLPI $item, $withtemplate = 0)
     {
         if ($item instanceof Profile) {
@@ -20,6 +67,11 @@ class ProfileClass extends Profile
     public static function displayTabContentForItem(\CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
     {
         if ($item instanceof Profile) {
+            self::addDefaultProfileInfos($item->getID(), [
+                'medicaoeletronica'         => 0,
+                'medicaoeletronica_history' => 0,
+            ]);
+
             $profile_obj = new self();
             $profile_obj->showForm($item->getID());
         }
@@ -42,19 +94,12 @@ class ProfileClass extends Profile
             echo "<form method='post' action='" . $profile->getFormURL() . "'>";
         }
 
-        $rights = [
-            [
-                'itemtype' => 'GlpiPlugin\\Medicaoeletronica\\Config',
-                'label'    => __('Medição Eletrônica', 'medicaoeletronica'),
-                'field'    => 'medicaoeletronica',
-            ],
-        ];
-
         $matrix_options = [
-            'title' => __('Medição Eletrônica', 'medicaoeletronica')
+            'title'   => __('Medição Eletrônica', 'medicaoeletronica'),
+            'canedit' => $canedit,
         ];
 
-        $profile->displayRightsChoiceMatrix($rights, $matrix_options);
+        $profile->displayRightsChoiceMatrix(self::getAllRights(), $matrix_options);
 
         if ($canedit) {
             echo "<div class='center'>";
